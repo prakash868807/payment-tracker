@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Payment Record</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="wrap">
+<header><h1>Payment Record</h1>
+{% if admin %}<a class="btn" href="/logout">Logout</a>{% else %}<a class="btn" href="/login">Admin Login</a>{% endif %}
+</header>
+<div class="total">Total Paid: ₹{{ "%.2f"|format(total) }}</div>
+{% with messages = get_flashed_messages() %}{% for m in messages %}<div class="msg">{{m}}</div>{% endfor %}{% endwith %}
+
+{% if admin %}
+<section class="card"><h2>नया Payment जोड़ें</h2>
+<form method="post" action="/add" class="grid">
+<input name="name" placeholder="नाम" required><input name="amount" type="number" step="0.01" placeholder="रुपये" required>
+<input name="date" type="date"><input name="note" placeholder="नोट">
+<button class="primary">Add Payment</button>
+</form></section>
+<section class="card"><h2>Excel Upload</h2>
+<p>पहली row में <b>Name</b> और <b>Amount</b> columns रखें। Date और Note optional हैं।</p>
+<form method="post" action="/upload" enctype="multipart/form-data"><input type="file" name="excel" accept=".xlsx,.xlsm" required><button class="primary">Upload Excel</button></form>
+<a class="download" href="/export">Updated Excel Download</a></section>
+{% endif %}
+
+<section class="card"><h2>Records</h2>
+<input id="search" class="search" placeholder="नाम खोजें..." oninput="filterRows()">
+<div class="tablewrap"><table id="tbl"><thead><tr><th>नाम</th><th>रुपये</th><th>तारीख</th><th>नोट</th>{% if admin %}<th></th>{% endif %}</tr></thead>
+<tbody>{% for r in rows %}<tr><td>{{r.name}}</td><td>₹{{"%.2f"|format(r.amount)}}</td><td>{{r.date}}</td><td>{{r.note}}</td>
+{% if admin %}<td><form method="post" action="/delete/{{r.id}}" onsubmit="return confirm('Delete करें?')"><button class="danger">Delete</button></form></td>{% endif %}</tr>{% endfor %}</tbody></table></div>
+</section>
+<p class="hint">यह page public viewing के लिए है। Editing केवल Admin Login के बाद होती है।</p>
+</div>
+<script>
+function filterRows(){let q=document.getElementById('search').value.toLowerCase();document.querySelectorAll('#tbl tbody tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none')}
+</script>
+</body></html>
